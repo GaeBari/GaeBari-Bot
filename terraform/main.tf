@@ -47,6 +47,21 @@ module "pynacl_layer" {
   s3_bucket   = aws_s3_bucket.lambda_build_bucket.id
 }
 
+module "requests_layer" {
+  source = "terraform-aws-modules/lambda/aws"
+
+  create_layer = true
+
+  layer_name          = "requests_layer"
+  description         = "requests"
+  compatible_runtimes = ["python3.10"]
+
+  source_path = "../layers/requests"
+
+  store_on_s3 = true
+  s3_bucket   = aws_s3_bucket.lambda_build_bucket.id
+}
+
 // Lambdas
 module "event_handler" {
   depends_on = [aws_s3_bucket.lambda_build_bucket]
