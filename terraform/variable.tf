@@ -21,6 +21,11 @@ variable "DISCORD_PUBLIC_KEY" {
   description = "Discord public key"
 }
 
+variable "DISCORD_TOKEN" {
+  type = string
+  description = "Discord bot token"
+}
+
 variable "lambda_build_bucket" {
   type        = string
   description = "S3 bucket for lambda build"

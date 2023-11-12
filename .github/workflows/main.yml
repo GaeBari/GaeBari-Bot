@@ -25,10 +25,12 @@ jobs:
   Lambda_deploy:
     strategy:
       matrix:
-        lambda: [event_handler]
+        lambda: [event_handler, new_link]
         include:
           - lambda: event_handler
             path: ./lambdas/event_handler
+          - lambda: new_link
+            path: ./lambdas/new_link
 
     uses: junah201/GaeBari-Bot/.github/workflows/lambda.yml@main
     with:

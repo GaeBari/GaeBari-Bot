@@ -93,3 +93,34 @@ module "event_handler" {
     version = "v1"
   }
 }
+
+module "new_link" {
+  depends_on = [aws_s3_bucket.lambda_build_bucket]
+
+  source = "terraform-aws-modules/lambda/aws"
+
+  function_name = "new_link"
+  description   = ""
+  handler       = "main.lambda_handler"
+  runtime       = "python3.10"
+  timeout       = 160
+  source_path   = "../lambdas/new_link"
+
+  store_on_s3 = true
+  s3_bucket   = var.lambda_build_bucket
+
+  create_role = false
+  lambda_role = module.lambda_default_role.role_arn
+
+  layers = [
+    module.requests_layer.lambda_layer_arn
+  ]
+
+  environment_variables = {
+    "DISCORD_TOKEN" = var.DISCORD_TOKEN
+  }
+
+  tags = {
+    version = "v1"
+  }
+}
