@@ -11,6 +11,9 @@ PUBLIC_KEY = os.environ.get("DISCORD_PUBLIC_KEY")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
+APPROVE_LOG_CHANNEL_ID = 1173639682219847740
+REJECT_LOG_CHANNEL_ID = 1173639815439335485
+
 
 @dataclass
 class INTERACTION_CALLBACK_TYPE:
@@ -101,6 +104,20 @@ def delete_message(channel_id: int, message_id: int):
             f"Failed to delete message: {res.status_code} {res.text}")
 
 
+def send_message(channel_id: int, data: dict):
+    res = requests.post(
+        f"https://discord.com/api/v9/channels/{channel_id}/messages",
+        headers={
+            "Authorization": f"Bot {DISCORD_TOKEN}",
+            "Content-Type": "application/json"
+        },
+        data=json.dumps(data)
+    )
+    if res.status_code != 200:
+        raise Exception(
+            f"Failed to send message: {res.status_code} {res.text}")
+
+
 def middleware(event, context):
     print(f"event {event}")  # debug print
     print(event["rawBody"])
@@ -185,14 +202,28 @@ def middleware(event, context):
         message_id = body.get('message', {}).get("id")
         channel_id = body.get('message', {}).get("channel_id")
         link = body.get("message", {}).get("embeds", [])[0].get("url")
+        author = body["message"]["embeds"][0]["author"]["name"]
 
         delete_message(channel_id, message_id)
+
+        send_message(
+            REJECT_LOG_CHANNEL_ID,
+            {
+                "embeds": [
+                    {
+                        "title": "거절된 링크",
+                        "color": 15670845,
+                        "description": f"**링크**: `{link}`\n**작성자**: {author}"
+                    }
+                ]
+            }
+        )
 
         return {
             "type": INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
             "data": {
-                "content": f"거절되었습니다.\n||{link}||",
-                # "flags": 64  # 64 is the flag for ephemeral messages
+                "content": f"거절완료",
+                "flags": 64  # 64 is the flag for ephemeral messages
             }
         }
     elif custom_id == CUSTOM_ID.APPROVE_LINK_MODAL:
@@ -232,11 +263,24 @@ def middleware(event, context):
         channel_id = body.get('message', {}).get("channel_id")
         delete_message(channel_id, message_id)
 
+        send_message(
+            APPROVE_LOG_CHANNEL_ID,
+            {
+                "embeds": [
+                    {
+                        "title": title,
+                        "color": 4582179,
+                        "description": f"**링크**: `{link}`\n**카테고리**: {category}\n**서브카테고리**: {subcategory}\n**작성자**: {author}"
+                    }
+                ]
+            }
+        )
+
         return {
             "type": INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
             "data": {
-                "content": f"처리완료.\n||{link}||",
-                # "flags": 64  # 64 is the flag for ephemeral messages
+                "content": f"처리완료",
+                "flags": 64  # 64 is the flag for ephemeral messages
             }
         }
 
