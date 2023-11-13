@@ -1,4 +1,3 @@
-
 module "lambda_default_role" {
   source = "./modules/role"
   name   = "LambdaDefault"
@@ -82,11 +81,13 @@ module "event_handler" {
   lambda_role = module.lambda_default_role.role_arn
 
   layers = [
-    module.pynacl_layer.lambda_layer_arn
+    module.pynacl_layer.lambda_layer_arn,
+    module.requests_layer.lambda_layer_arn
   ]
 
   environment_variables = {
     "DISCORD_PUBLIC_KEY" = var.DISCORD_PUBLIC_KEY
+    "DISCORD_TOKEN" = var.DISCORD_TOKEN
   }
 
   tags = {
