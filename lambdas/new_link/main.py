@@ -6,6 +6,7 @@ from dataclasses import dataclass
 CHANNEL_ID = 1173627431609962639
 TOKEN = os.environ.get("DISCORD_TOKEN")
 CATEGORY_OPTIONS = [
+    "개발 - C/C++",
     "개발 - 프론트엔드 / 웹",
     "개발 - Java",
     "개발 - Python",
