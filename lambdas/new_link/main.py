@@ -105,7 +105,10 @@ def lambda_handler(event, context):
                     "title": "새 링크가 추가되었습니다.",
                     "description": f"**링크**: {link}\n**작성자**: `{author}`\n**시간**: `{created_at}`",
                     "url": link,
-                    "color": 5814783
+                    "color": 5814783,
+                    "author": {
+                        "name": f"{author}"
+                    }
                 }
             ],
             "components": [

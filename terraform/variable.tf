@@ -26,6 +26,11 @@ variable "DISCORD_TOKEN" {
   description = "Discord bot token"
 }
 
+variable "GITHUB_TOKEN" {
+  type = string
+  description = "Github token"
+}
+
 variable "lambda_build_bucket" {
   type        = string
   description = "S3 bucket for lambda build"

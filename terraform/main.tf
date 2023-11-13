@@ -88,6 +88,7 @@ module "event_handler" {
   environment_variables = {
     "DISCORD_PUBLIC_KEY" = var.DISCORD_PUBLIC_KEY
     "DISCORD_TOKEN" = var.DISCORD_TOKEN
+    "GITHUB_TOKEN" = var.GITHUB_TOKEN
   }
 
   tags = {

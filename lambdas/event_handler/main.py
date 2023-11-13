@@ -1,13 +1,15 @@
 import json
 import os
 from dataclasses import dataclass
+import re
 
 import requests
 from nacl.signing import VerifyKey
 from nacl.exceptions import BadSignatureError
 
 PUBLIC_KEY = os.environ.get("DISCORD_PUBLIC_KEY")
-TOKEN = os.environ.get("DISCORD_TOKEN")
+DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 
 @dataclass
@@ -91,7 +93,7 @@ def delete_message(channel_id: int, message_id: int):
     res = requests.delete(
         f"https://discord.com/api/v9/channels/{channel_id}/messages/{message_id}",
         headers={
-            "Authorization": f"Bot {TOKEN}"
+            "Authorization": f"Bot {DISCORD_TOKEN}"
         }
     )
     if res.status_code != 204:
@@ -198,6 +200,33 @@ def middleware(event, context):
         link = body["data"]["components"][1]["components"][0]["value"]
         full_category = body["data"]["components"][2]["components"][0]["custom_id"]
         category, subcategory = full_category.split(" - ")
+        author = body["message"]["embeds"][0]["author"]["name"]
+
+        OWNER = "junah201"
+        REPO = "GaeBari.github.io"
+        WORKFLOW_ID = 75948897
+
+        data = json.dumps({
+            "ref": "main",
+            "inputs": {
+                "title": title,
+                "link": link,
+                "author": author,
+                "category": category,
+                "subcategory": subcategory,
+            }
+        })
+
+        requests.post(
+            f'https://api.github.com/repos/{OWNER}/{REPO}/actions/workflows/{WORKFLOW_ID}/dispatches',
+            headers={
+                'Accept': 'application/vnd.github+json',
+                'Authorization': f'Bearer {GITHUB_TOKEN}',
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            data=data
+        )
 
     # dummy return
     return {
