@@ -202,9 +202,9 @@ def middleware(event, context):
         category, subcategory = full_category.split(" - ")
         author = body["message"]["embeds"][0]["author"]["name"]
 
-        OWNER = "junah201"
+        OWNER = "GaeBari"
         REPO = "GaeBari.github.io"
-        WORKFLOW_ID = 75948897
+        WORKFLOW_ID = 75960089
 
         data = json.dumps({
             "ref": "main",
@@ -229,6 +229,7 @@ def middleware(event, context):
         )
 
         message_id = body.get('message', {}).get("id")
+        channel_id = body.get('message', {}).get("channel_id")
         delete_message(channel_id, message_id)
 
         return {
