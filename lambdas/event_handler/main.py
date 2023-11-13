@@ -228,12 +228,22 @@ def middleware(event, context):
             data=data
         )
 
-    # dummy return
+        message_id = body.get('message', {}).get("id")
+        delete_message(channel_id, message_id)
+
+        return {
+            "type": INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
+            "data": {
+                "content": f"처리완료.\n||{link}||",
+                # "flags": 64  # 64 is the flag for ephemeral messages
+            }
+        }
+
     return {
         "type": INTERACTION_CALLBACK_TYPE.CHANNEL_MESSAGE_WITH_SOURCE,
         "data": {
             "tts": False,
-            "content": f"{custom_id=}",
+            "content": f"{custom_id=}\n\n```{event.get('rawBody')}```",
             "embeds": [],
             "allowed_mentions": [],
         }
