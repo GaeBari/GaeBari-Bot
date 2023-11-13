@@ -3,7 +3,7 @@ import os
 import requests
 from dataclasses import dataclass
 
-CHANNEL_ID = 1173171908922048653
+CHANNEL_ID = 1173627431609962639
 TOKEN = os.environ.get("DISCORD_TOKEN")
 CATEGORY_OPTIONS = [
     "개발 - 프론트엔드 / 웹",
