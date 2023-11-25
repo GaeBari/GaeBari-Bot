@@ -9,12 +9,14 @@ jobs:
   Layer_deploy:
     strategy:
       matrix:
-        layer: [pynacl_layer, requests_layer]
+        layer: [pynacl_layer, requests_layer, common_layer]
         include:
           - layer: pynacl_layer
             path: ./layers/pynacl
           - layer: requests_layer
             path: ./layers/requests
+          - layer: common_layer
+            path: ./layers/common
 
     uses: junah201/GaeBari-Bot/.github/workflows/layer.yml@main
     with:
