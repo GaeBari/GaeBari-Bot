@@ -3,6 +3,12 @@ import os
 import requests
 from dataclasses import dataclass
 
+try:
+    from common import *
+except ImportError:
+    # for local test
+    from layers.common.python.common import *
+
 CHANNEL_ID = 1173627431609962639
 TOKEN = os.environ.get("DISCORD_TOKEN")
 CATEGORY_OPTIONS = [
@@ -35,76 +41,14 @@ CATEGORY_OPTIONS = [
 ]
 
 
-@dataclass
-class INTERACTION_CALLBACK_TYPE:
-    # https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object
-    PONG = 1
-    ACK_NO_SOURCE = 2
-    CHANNEL_MESSAGE_WITH_SOURCE = 4
-    DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5
-    DEFERRED_UPDATE_MESSAGE = 6
-    UPDATE_MESSAGE = 7
-    APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8
-    MODAL = 9
-    PREMIUM_REQUIRED = 10
-
-
-@dataclass
-class TYPE:
-    PING = 1
-    BUTTON = 3
-    MODAL = 5
-
-
-@dataclass
-class CUSTOM_ID:
-    CATEGORY_SELECT = "category_select"
-    APPROVE_LINK_MODAL = "approve_link_modal"
-    REJECT_LINK_BUTTON = "reject_link"
-
-
-@dataclass
-class COMPONENT_TYPE:
-    # https://discord.com/developers/docs/interactions/message-components#component-object-component-types
-    ACTION_ROW = 1
-    BUTTON = 2
-    STRING_SELECT = 3
-    TEXT_INPUT = 4
-    USER_SELECT = 5
-    ROLE_SELECT = 6
-    MENTIONABLE_SELECT = 7
-    CHANNEL_SELECT = 8
-
-
-@dataclass
-class TEXT_INPUT_STYLE:
-    # https://discord.com/developers/docs/interactions/message-components#text-input-object-text-input-interaction
-    SHORT = 1
-    PARAGRAPH = 2
-
-
-@dataclass
-class BUTTON_STYLE:
-    # https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
-    PRIMARY = 1
-    SECONDARY = 2
-    SUCCESS = 3
-    DANGER = 4
-    LINK = 5
-
-
 def lambda_handler(event, context):
     link = event.get("link")
     author = event.get("author")
     created_at = event.get("created_at")
 
-    res = requests.post(
-        f"https://discordapp.com/api/channels/{CHANNEL_ID}/messages",
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bot {TOKEN}"
-        },
-        data=json.dumps({
+    send_message(
+        CHANNEL_ID,
+        {
             "content": "",
             "embeds": [
                 {
@@ -148,12 +92,8 @@ def lambda_handler(event, context):
                     ]
                 },
             ]
-        })
+        }
     )
-
-    if res.status_code != 200:
-        raise Exception(
-            f"Failed to send message to Discord: {res.status_code} {res.text}")
 
     return {
         "message": "success"

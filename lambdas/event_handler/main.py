@@ -1,76 +1,21 @@
 import json
 import os
-from dataclasses import dataclass
-import re
 
 import requests
 from nacl.signing import VerifyKey
 from nacl.exceptions import BadSignatureError
+try:
+    from common import *
+except ImportError:
+    # for local test
+    from layers.common.python.common import *
 
 PUBLIC_KEY = os.environ.get("DISCORD_PUBLIC_KEY")
-DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
+
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 APPROVE_LOG_CHANNEL_ID = 1173639682219847740
 REJECT_LOG_CHANNEL_ID = 1173639815439335485
-
-
-@dataclass
-class INTERACTION_CALLBACK_TYPE:
-    # https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object
-    PONG = 1
-    ACK_NO_SOURCE = 2
-    CHANNEL_MESSAGE_WITH_SOURCE = 4
-    DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5
-    DEFERRED_UPDATE_MESSAGE = 6
-    UPDATE_MESSAGE = 7
-    APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8
-    MODAL = 9
-    PREMIUM_REQUIRED = 10
-
-
-@dataclass
-class TYPE:
-    PING = 1
-    BUTTON = 3
-    MODAL = 5
-
-
-@dataclass
-class CUSTOM_ID:
-    CATEGORY_SELECT = "category_select"
-    APPROVE_LINK_MODAL = "approve_link_modal"
-    REJECT_LINK_BUTTON = "reject_link"
-
-
-@dataclass
-class COMPONENT_TYPE:
-    # https://discord.com/developers/docs/interactions/message-components#component-object-component-types
-    ACTION_ROW = 1
-    BUTTON = 2
-    STRING_SELECT = 3
-    TEXT_INPUT = 4
-    USER_SELECT = 5
-    ROLE_SELECT = 6
-    MENTIONABLE_SELECT = 7
-    CHANNEL_SELECT = 8
-
-
-@dataclass
-class TEXT_INPUT_STYLE:
-    # https://discord.com/developers/docs/interactions/message-components#text-input-object-text-input-interaction
-    SHORT = 1
-    PARAGRAPH = 2
-
-
-@dataclass
-class BUTTON_STYLE:
-    # https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
-    PRIMARY = 1
-    SECONDARY = 2
-    SUCCESS = 3
-    DANGER = 4
-    LINK = 5
 
 
 def verify_signature(event):
@@ -86,41 +31,10 @@ def verify_signature(event):
     )  # raises an error if unequal
 
 
-def ping_pong(body):
-    if body.get("type") == 1:
-        return True
-    return False
-
-
-def delete_message(channel_id: int, message_id: int):
-    res = requests.delete(
-        f"https://discord.com/api/v9/channels/{channel_id}/messages/{message_id}",
-        headers={
-            "Authorization": f"Bot {DISCORD_TOKEN}"
-        }
-    )
-    if res.status_code != 204:
-        raise Exception(
-            f"Failed to delete message: {res.status_code} {res.text}")
-
-
-def send_message(channel_id: int, data: dict):
-    res = requests.post(
-        f"https://discord.com/api/v9/channels/{channel_id}/messages",
-        headers={
-            "Authorization": f"Bot {DISCORD_TOKEN}",
-            "Content-Type": "application/json"
-        },
-        data=json.dumps(data)
-    )
-    if res.status_code != 200:
-        raise Exception(
-            f"Failed to send message: {res.status_code} {res.text}")
-
-
 def middleware(event, context):
     print(f"event {event}")  # debug print
     print(event["rawBody"])
+
     # verify the signature
     try:
         verify_signature(event)
@@ -129,7 +43,7 @@ def middleware(event, context):
 
     # ping pong
     body = event.get('body')
-    if ping_pong(body):
+    if body.get("type") == TYPE.PING:
         return {
             "type": 1
         }
@@ -158,7 +72,6 @@ def middleware(event, context):
                                 "style": TEXT_INPUT_STYLE.SHORT,
                                 "min_length": 1,
                                 "max_length": 1000,
-                                # "value": "",
                                 "required": True
                             }
                         ]
@@ -203,6 +116,7 @@ def middleware(event, context):
         channel_id = body.get('message', {}).get("channel_id")
         link = body.get("message", {}).get("embeds", [])[0].get("url")
         author = body["message"]["embeds"][0]["author"]["name"]
+        user_id = body["member"]["user"]["id"]
 
         delete_message(channel_id, message_id)
 
@@ -213,7 +127,7 @@ def middleware(event, context):
                     {
                         "title": "거절된 링크",
                         "color": 15670845,
-                        "description": f"**링크**: `{link}`\n**작성자**: {author}"
+                        "description": f"**링크**: `{link}`\n**작성자**: {author}\n**처리자**: <@{user_id}>"
                     }
                 ]
             }
@@ -261,6 +175,7 @@ def middleware(event, context):
 
         message_id = body.get('message', {}).get("id")
         channel_id = body.get('message', {}).get("channel_id")
+        user_id = body["member"]["user"]["id"]
         delete_message(channel_id, message_id)
 
         send_message(
@@ -270,7 +185,7 @@ def middleware(event, context):
                     {
                         "title": title,
                         "color": 4582179,
-                        "description": f"**링크**: `{link}`\n**카테고리**: {category}\n**서브카테고리**: {subcategory}\n**작성자**: {author}"
+                        "description": f"**링크**: `{link}`\n**카테고리**: {category}\n**서브카테고리**: {subcategory}\n**작성자**: {author}\n**처리자**: <@{user_id}>"
                     }
                 ]
             }
