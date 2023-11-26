@@ -25,6 +25,8 @@ class TYPE:
 @dataclass
 class CUSTOM_ID:
     CATEGORY_SELECT = "category_select"
+    SUB_CATEGORY_SELECT = "sub_category_select"
+    SUB_CATEGORY_CANCEL_BUTTON = "sub_category_cancel_button"
     APPROVE_LINK_MODAL = "approve_link_modal"
     REJECT_LINK_BUTTON = "reject_link"
 
